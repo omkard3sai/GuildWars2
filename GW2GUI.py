@@ -1,11 +1,8 @@
 import sys
 import urllib.request
-import pprint
-import math
 from operator import itemgetter
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QPushButton, QApplication, QLabel, QMainWindow, QStatusBar)
+from PyQt5.QtWidgets import (QWidget, QGridLayout, QPushButton, QApplication, QLabel, QStatusBar)
 from PyQt5 import QtCore
-from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap
 from GuildWars2 import GuildWars2
 from Buttons import ImageButton
@@ -54,17 +51,21 @@ class GW2GUI(QWidget):
 
     # Initialize profession and it's options
     def _initprofession(self, name):
-        self.statusbar.showMessage("Loading " +name+ "....")
+        self.grid.removeItem(self.sidemenugrid)
+        self.grid.removeItem(self.detailsgrid)
         self._clearlayout(self.sidemenugrid)
         self._clearlayout(self.detailsgrid)
+        self.statusbar.showMessage("Loading " + name + "....")
         self.gw2object.setprofession(name)
         self._addbutton(self.grid, "Weapons", self.weaponsmenuclicked, 3, 0, 1, 4)
         self._addbutton(self.grid, "Specializations", self.specsmenuclicked, 3, 5, 1, 4)
         self.statusbar.showMessage("Ready....Weapon or Specializations?")
 
-    # Initialize weapons and skills for current profession
+    # Initialize weapons for current profession
     def _initweapons(self):
         self.statusbar.showMessage("Loading weapons....")
+        self.grid.removeItem(self.sidemenugrid)
+        self.grid.removeItem(self.detailsgrid)
         self._clearlayout(self.sidemenugrid)
         self._clearlayout(self.detailsgrid)
         self.grid.addLayout(self.sidemenugrid, 4, 0, 1, 1)
@@ -76,23 +77,9 @@ class GW2GUI(QWidget):
             i += 1
         self.statusbar.showMessage("Ready....Choose a weapon")
 
-    # Initialize available specializations for current profession
-    def _initspecs(self):
-        self.statusbar.showMessage("Loading specialization....")
-        self._clearlayout(self.sidemenugrid)
-        self._clearlayout(self.detailsgrid)
-        self.grid.addLayout(self.detailsgrid, 4, 0, 1, 9)
-        specs = self.gw2object.getspecializations()
-        i = 1
-        for spec in sorted(specs, key=itemgetter('name')):
-            self._addimagebutton(self.detailsgrid, spec['name'], spec['url'], self.specbuttonclicked, 4, i)
-            i += 1
-        self.statusbar.showMessage("Ready....")
-
     # Display weapon skills
     def _initweaponskills(self, name):
         self.statusbar.showMessage("Loading skills....")
-        self._clearlayout(self.detailsgrid)
         weapons = self.gw2object.getweapons()
         for weapon in weapons:
             if weapon['name'] == name:
@@ -101,7 +88,7 @@ class GW2GUI(QWidget):
                 for skill in weapon['skills']:
                     image = self._getimage(skill['url'])
                     self._addimage(self.detailsgrid, image, v, h)
-                    self._addlabel(self.detailsgrid, skill['name'], v+1, h)
+                    self._addlabel(self.detailsgrid, skill['name'], v + 1, h)
                     if h == 3:
                         h = 0
                         v += 2
@@ -109,28 +96,28 @@ class GW2GUI(QWidget):
                         h += 1
         self.statusbar.showMessage("Ready....")
 
-    # Display specialization traits
-    def _initspecializationtraits(self, name):
-        self.statusbar.showMessage("Loading traits....")
+    # Initialize specializations for current profession
+    def _initspecs(self):
+        self.statusbar.showMessage("Loading specialization....")
+        self.grid.removeItem(self.sidemenugrid)
+        self.grid.removeItem(self.detailsgrid)
         self._clearlayout(self.sidemenugrid)
         self._clearlayout(self.detailsgrid)
+        self.grid.addLayout(self.detailsgrid, 4, 0, 1, 9)
         specs = self.gw2object.getspecializations()
-        pprint.pprint(specs)
-        for spec in specs:
-            if spec['name'] == name:
-                h = 0
-                v = 1
-                for trait in spec['skills']:
-                    image = self._getimage(trait['url'])
-                    self._addimage(self.detailsgrid, image, v, h)
-                    self._addlabel(self.detailsgrid, trait['name'], v+1, h)
-                    if h == 4:
-                        h = 0
-                        v += 2
-                    else:
-                        h += 1
+        i = 0
+        for spec in sorted(specs, key=itemgetter('name')):
+            image = self._getimage(spec['url'])
+            self._addimage(self.detailsgrid, image, 4, i)
+            self._addlabel(self.detailsgrid, spec['name'], 5, i)
+            i += 1
         self.statusbar.showMessage("Ready....")
 
+    """
+
+            ~~~~~  STATIC AND CALSS METHODS  ~~~~~
+
+    """
     # Class method to retrieve image from a url
     @classmethod
     def _getimage(cls, imageurl):
