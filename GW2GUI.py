@@ -1,11 +1,16 @@
 import sys
 import urllib.request
+import threading
 from operator import itemgetter
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QPushButton, QApplication, QLabel, QStatusBar)
 from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap
 from GuildWars2 import GuildWars2
 from Buttons import ImageButton
+
+
+class SignalConnector(QtCore.QObject):
+    signal = QtCore.pyqtSignal(list, name="apisignal")
 
 
 class GW2GUI(QWidget):
@@ -16,6 +21,8 @@ class GW2GUI(QWidget):
         self.gw2object = GuildWars2()
         self.grid = QGridLayout()
         self.grid.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
+        self.menugrid = QGridLayout()
+        self.menugrid.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
         self.sidemenugrid = QGridLayout()
         self.sidemenugrid.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
         self.detailsgrid = QGridLayout()
@@ -25,7 +32,7 @@ class GW2GUI(QWidget):
 
     """
 
-        ~~~~~  INTERNAL METHODS  ~~~~~
+            ~~~~~  INTERNAL METHODS  ~~~~~
 
     """
     # Initial UI Constructor
@@ -34,93 +41,127 @@ class GW2GUI(QWidget):
         self.grid.addWidget(self.statusbar, 0, 0, 1, 9)
         self.statusbar.showMessage("Ready....Choose a profession")
         self.setLayout(self.grid)
-        self._initprofessionmenu()
+        self._initprofessions()
         self.move(300, 150)
         self.setWindowTitle('Guild Wars 2')
         self.show()
 
     # Create buttons for each profession
-    def _initprofessionmenu(self):
+    def _initprofessions(self):
         buttonitems = self.gw2object.getallprofessions()
         i = 0
         for profession in buttonitems:
-            image = self._getimage(profession['url'])
-            self._addimagebutton(self.grid, profession['name'], profession['url'], self.professionbuttonclicked, 1, i)
+            self._addimagebutton(self.grid, profession['name'], profession['url'], self.clickprofession, 1, i)
             self._addlabel(self.grid, profession['name'], 2, i)
             i += 1
 
-    # Initialize profession and it's options
-    def _initprofession(self, name):
+    # Set profession
+    def _setprofession(self, name):
+        self.grid.removeItem(self.menugrid)
         self.grid.removeItem(self.sidemenugrid)
         self.grid.removeItem(self.detailsgrid)
+        self._clearlayout(self.menugrid)
         self._clearlayout(self.sidemenugrid)
         self._clearlayout(self.detailsgrid)
         self.statusbar.showMessage("Loading " + name + "....")
-        self.gw2object.setprofession(name)
-        self._addbutton(self.grid, "Weapons", self.weaponsmenuclicked, 3, 0, 1, 4)
-        self._addbutton(self.grid, "Specializations", self.specsmenuclicked, 3, 5, 1, 4)
-        self.statusbar.showMessage("Ready....Weapon or Specializations?")
+        connector = SignalConnector()
+        connector.signal.connect(self._displayprofession)
+        professionthread = threading.Thread(target=self._threadprofession, args=(connector, name))
+        professionthread.start()
 
-    # Initialize weapons for current profession
-    def _initweapons(self):
-        self.statusbar.showMessage("Loading weapons....")
+    # Set option and display menu for either weapons or specializations
+    def _setoption(self, option):
         self.grid.removeItem(self.sidemenugrid)
         self.grid.removeItem(self.detailsgrid)
         self._clearlayout(self.sidemenugrid)
         self._clearlayout(self.detailsgrid)
-        self.grid.addLayout(self.sidemenugrid, 4, 0, 1, 1)
-        self.grid.addLayout(self.detailsgrid, 4, 1, 1, 8)
-        weapons = self.gw2object.getweapons()
-        i = 4
-        for weapon in sorted(weapons, key=itemgetter('name')):
-            self._addbutton(self.sidemenugrid, weapon['name'], self.weaponbuttonclicked, i, 1)
-            i += 1
-        self.statusbar.showMessage("Ready....Choose a weapon")
+        self.selectedoption = option
+        if option == "Weapons":
+            self.statusbar.showMessage("Loading weapons....")
+        else:
+            self.statusbar.showMessage("Loading specialization....")
+        optionconnector = SignalConnector()
+        optionconnector.signal.connect(self._displayoptions)
+        optionthread = threading.Thread(target=self._threadoption, args=(optionconnector,))
+        optionthread.start()
 
-    # Display weapon skills
-    def _initweaponskills(self, name):
-        self.statusbar.showMessage("Loading skills....")
-        weapons = self.gw2object.getweapons()
-        for weapon in weapons:
-            if weapon['name'] == name:
+    # Set the weapon or specialization clicked with traits and
+    def _setweaponspec(self, weaponspec):
+        self.grid.removeItem(self.detailsgrid)
+        self._clearlayout(self.detailsgrid)
+        self.selectedweaponspec = weaponspec
+        if self.selectedoption == "Weapons":
+            self.statusbar.showMessage("Loading weapon skills....")
+        else:
+            self.statusbar.showMessage("Loading specialization traits....")
+        connector = SignalConnector()
+        connector.signal.connect(self._displayweaponspec)
+        weaponspecthread = threading.Thread(target=self._threadweaponspec, args=(connector,))
+        weaponspecthread.start()
+
+    # Threaded function for profession
+    def _threadprofession(self, connector, name):
+        self.gw2object.setprofession(name)
+        connector.signal.emit([])
+
+    # Threaded function for weapons and specializations
+    def _threadoption(self, optionconnector):
+        if self.selectedoption == "Weapons":
+            returndata = self.gw2object.getweapons()
+        else:
+            returndata = self.gw2object.getspecializations()
+        optionconnector.signal.emit(returndata)
+
+    # Threaded function for weapon skills
+    def _threadweaponspec(self, connector):
+        if self.selectedoption == "Weapons":
+            returndata = self.gw2object.getweapons()
+        else:
+            returndata = self.gw2object.getspecializations()
+        connector.signal.emit(returndata)
+
+    # Display profession options
+    def _displayprofession(self):
+        self._addbutton(self.menugrid, "Weapons", self.clickoption, 1, 0, 1, 4)
+        self._addbutton(self.menugrid, "Specializations", self.clickoption, 1, 5, 1, 4)
+        self.grid.addLayout(self.menugrid, 3, 0, 1, 9)
+        self.statusbar.showMessage("Ready....Weapon or Specializations?")
+
+    # Display weapons or specializations
+    def _displayoptions(self, data):
+        i = 4
+        for item in sorted(data, key=itemgetter('name')):
+            self._addbutton(self.sidemenugrid, item['name'], self.clickweaponspec, i, 1)
+            i += 1
+        self.grid.addLayout(self.sidemenugrid, 4, 0, 1, 1)
+        self.statusbar.showMessage("Ready....Choose an option to display it's skills")
+
+    # Display skills/traits of selected weapon/specialization
+    def _displayweaponspec(self, data):
+        for item in data:
+            if item['name'] == self.selectedweaponspec:
                 h = 0
                 v = 1
-                for skill in weapon['skills']:
-                    image = self._getimage(skill['url'])
+                for element in item['skilltraits']:
+                    image = self._getimage(element['url'])
                     self._addimage(self.detailsgrid, image, v, h)
-                    self._addlabel(self.detailsgrid, skill['name'], v + 1, h)
+                    self._addlabel(self.detailsgrid, element['name'], v + 1, h)
                     if h == 3:
                         h = 0
                         v += 2
                     else:
                         h += 1
-        self.statusbar.showMessage("Ready....")
-
-    # Initialize specializations for current profession
-    def _initspecs(self):
-        self.statusbar.showMessage("Loading specialization....")
-        self.grid.removeItem(self.sidemenugrid)
-        self.grid.removeItem(self.detailsgrid)
-        self._clearlayout(self.sidemenugrid)
-        self._clearlayout(self.detailsgrid)
-        self.grid.addLayout(self.detailsgrid, 4, 0, 1, 9)
-        specs = self.gw2object.getspecializations()
-        i = 0
-        for spec in sorted(specs, key=itemgetter('name')):
-            image = self._getimage(spec['url'])
-            self._addimage(self.detailsgrid, image, 4, i)
-            self._addlabel(self.detailsgrid, spec['name'], 5, i)
-            i += 1
+                break
+        self.grid.addLayout(self.detailsgrid, 4, 1, 1, 8)
         self.statusbar.showMessage("Ready....")
 
     """
-
-            ~~~~~  STATIC AND CALSS METHODS  ~~~~~
+        ~~~~~  STATIC METHODS  ~~~~~
 
     """
-    # Class method to retrieve image from a url
-    @classmethod
-    def _getimage(cls, imageurl):
+    # Retrieve image from a url
+    @staticmethod
+    def _getimage(imageurl):
         return urllib.request.urlopen(imageurl).read()
 
     # Add a new image to grid
@@ -170,32 +211,23 @@ class GW2GUI(QWidget):
             widget.deleteLater()
 
     """
-
         ~~~~~  INTERFACE METHODS  ~~~~~
 
     """
     # Click event for each profession
-    def professionbuttonclicked(self):
-        sender = self.sender()
-        self._initprofession(sender.getName())
+    def clickprofession(self):
+        profession = self.sender().getName()
+        self._setprofession(profession)
 
-    # Click event for weapons button
-    def weaponsmenuclicked(self):
-        self._initweapons()
+    # Click event for each option
+    def clickoption(self):
+        option = self.sender().text()
+        self._setoption(option)
 
-    # Click event for specializations button
-    def specsmenuclicked(self):
-        self._initspecs()
-
-    # Click event for each weapon
-    def weaponbuttonclicked(self):
-        weapon = self.sender().text()
-        self._initweaponskills(weapon)
-
-    # Click event for each specialization
-    def specbuttonclicked(self):
-        spec = self.sender().text()
-        self._initspecializationskills(spec)
+    # Click event for each weapon or specialization
+    def clickweaponspec(self):
+        weaponspec = self.sender().text()
+        self._setweaponspec(weaponspec)
 
 
 def main():

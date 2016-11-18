@@ -38,6 +38,15 @@ class GuildWars2:
         }
         return returndata
 
+    # Get trait
+    def _gettrait(self, traitid):
+        temp = self._urlcall('traits', traitid)
+        returndata = {
+            'name': temp['name'],
+            'url': temp['icon']
+        }
+        return returndata
+
     # Set profession
     def _setprofession(self, profession):
         profession = self._urlcall('professions', profession)
@@ -54,7 +63,7 @@ class GuildWars2:
                 skilllist.append(self._getskill(skill['id']))
             self._weapons.append({
                 'name': weapon,
-                'skills': skilllist
+                'skilltraits': skilllist
             })
 
     # Set specializations for profession
@@ -62,9 +71,12 @@ class GuildWars2:
         self._specializations = list()
         for specid in specializations:
             temp = self._urlcall('specializations', specid)
+            traitlist = list()
+            for trait in temp['major_traits'] + temp['minor_traits']:
+                traitlist.append(self._gettrait(trait))
             self._specializations.append({
                 'name': temp['name'],
-                'url': temp['icon']
+                'skilltraits': traitlist
             })
 
     # Get profession
@@ -98,3 +110,4 @@ class GuildWars2:
 
     def getspecializations(self):
         return self._getspecializations()
+
