@@ -32,52 +32,60 @@ class GuildWars2:
     # Get skill
     def _getskill(self, skillid):
         temp = self._urlcall('skills', skillid)
+        tooltip = temp['description'] + "\n"
+        for fact in temp['facts']:
+            if 'status' in fact:
+                tooltip += "\n" + fact['status'] + ": " + fact['description'] + "\n"
         returndata = {
             'name': temp['name'],
-            'url': temp['icon']
+            'url': temp['icon'],
+            'tooltip': tooltip
         }
         return returndata
 
     # Get trait
     def _gettrait(self, traitid):
         temp = self._urlcall('traits', traitid)
+        tooltip = temp['description'] + "\n"
+        for fact in temp['facts']:
+            if 'status' in fact:
+                tooltip += "\n" + fact['status'] + ": " + fact['description'] + "\n"
         returndata = {
             'name': temp['name'],
-            'url': temp['icon']
+            'url': temp['icon'],
+            'tooltip': tooltip
         }
         return returndata
 
     # Set profession
     def _setprofession(self, profession):
         profession = self._urlcall('professions', profession)
-        self._setspecializations(profession['specializations'])
-        self._setweapons(profession['weapons'])
-        self._profession = profession['name']
+        self._profession = {
+            'weapons': profession['weapons'],
+            'specializations': profession['specializations']
+        }
+        self._reinitweapons = True,
+        self._reinitspecializations = True
+        self._professiontitle = profession['name']
 
     # Set weapons for profession
-    def _setweapons(self, weapons):
-        self._weapons = list()
-        for weapon, skills in weapons.items():
+    def _setweapons(self):
+        self._weapons = dict()
+        for weapon, skills in self._profession['weapons'].items():
             skilllist = list()
             for skill in skills['skills']:
                 skilllist.append(self._getskill(skill['id']))
-            self._weapons.append({
-                'name': weapon,
-                'skilltraits': skilllist
-            })
+            self._weapons[weapon] = skilllist
 
     # Set specializations for profession
-    def _setspecializations(self, specializations):
-        self._specializations = list()
-        for specid in specializations:
+    def _setspecializations(self):
+        self._specializations = dict()
+        for specid in self._profession['specializations']:
             temp = self._urlcall('specializations', specid)
             traitlist = list()
             for trait in temp['major_traits'] + temp['minor_traits']:
                 traitlist.append(self._gettrait(trait))
-            self._specializations.append({
-                'name': temp['name'],
-                'skilltraits': traitlist
-            })
+            self._specializations[temp['name']] = traitlist
 
     # Get profession
     def _getprofession(self):
@@ -85,10 +93,16 @@ class GuildWars2:
 
     # Get weapons for profession
     def _getweapons(self):
+        if self._reinitweapons:
+            self._setweapons()
+            self._reinitweapons = False
         return self._weapons
 
     # Get specialization from a profession
     def _getspecializations(self):
+        if self._reinitspecializations:
+            self._setspecializations()
+            self._reinitspecializations = False
         return self._specializations
 
     """

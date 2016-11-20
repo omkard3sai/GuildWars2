@@ -1,0 +1,120 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) <2013-2014> <Colin Duquesnoy>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+QToolTip
+{
+    border: 1px solid #484043;
+    background-color: #EAD3A8;
+    color: #333333;
+    padding: 5px;
+}
+
+QWidget
+{
+    color: #eff0f1;
+    background-color: #484043;
+    selection-background-color:#D23641;
+    selection-color: #eff0f1;
+    background-clip: border;
+    border-image: none;
+    border: 0px transparent black;
+    outline: 0;
+}
+
+QWidget:item:hover
+{
+    background-color: #D23641;
+    color: #eff0f1;
+}
+
+QWidget:item:selected
+{
+    background-color: #D23641;
+}
+
+QWidget:disabled
+{
+    color: #454545;
+    background-color: #484043;
+}
+
+QWidget:focus, QMenuBar:focus
+{
+    border: 1px solid #D23641;
+}
+
+QPushButton
+{
+    color: #eff0f1;
+    background-color: #484043;
+    border-width: 1px;
+    border-color: #76797C;
+    border-style: solid;
+    padding: 5px;
+    border-radius: 2px;
+    outline: none;
+}
+
+QPushButton:disabled
+{
+    background-color: #484043;
+    border-width: 1px;
+    border-color: #454545;
+    border-style: solid;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 2px;
+    color: #454545;
+}
+
+QPushButton:focus {
+    background-color: #D23641;
+    color: white;
+}
+
+QPushButton:pressed
+{
+    background-color: #D23641;
+    padding-top: -15px;
+    padding-bottom: -17px;
+}
+
+QPushButton:checked{
+    background-color: #76797C;
+    border-color: #6A6969;
+}
+
+QLabel
+{
+    border: 0px solid black;
+    color: #EAD3A8;
+    font-size: 16px;
+}
+
+QStatusBar::item {
+    border: 0px transparent dark;
+ }
