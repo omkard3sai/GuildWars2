@@ -33,9 +33,11 @@ class GuildWars2:
     def _getskill(self, skillid):
         temp = self._urlcall('skills', skillid)
         tooltip = temp['description'] + "\n"
-        for fact in temp['facts']:
-            if 'status' in fact:
-                tooltip += "\n" + fact['status'] + ": " + fact['description']
+        if 'facts' in temp:
+            tooltip += "\n"
+            for fact in temp['facts']:
+                if 'status' in fact:
+                    tooltip += "\n" + fact['status'] + ": " + fact['description']
         returndata = {
             'name': temp['name'],
             'url': temp['icon'],
@@ -46,10 +48,12 @@ class GuildWars2:
     # Get trait
     def _gettrait(self, traitid):
         temp = self._urlcall('traits', traitid)
-        tooltip = temp['description'] + "\n"
-        for fact in temp['facts']:
-            if 'status' in fact:
-                tooltip += "\n" + fact['status'] + ": " + fact['description']
+        tooltip = temp['description']
+        if 'facts' in temp:
+            tooltip += "\n"
+            for fact in temp['facts']:
+                if 'status' in fact:
+                    tooltip += "\n" + fact['status'] + ": " + fact['description']
         returndata = {
             'name': temp['name'],
             'url': temp['icon'],
