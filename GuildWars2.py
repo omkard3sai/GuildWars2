@@ -35,7 +35,7 @@ class GuildWars2:
         tooltip = temp['description'] + "\n"
         for fact in temp['facts']:
             if 'status' in fact:
-                tooltip += "\n" + fact['status'] + ": " + fact['description'] + "\n"
+                tooltip += "\n" + fact['status'] + ": " + fact['description']
         returndata = {
             'name': temp['name'],
             'url': temp['icon'],
@@ -49,7 +49,7 @@ class GuildWars2:
         tooltip = temp['description'] + "\n"
         for fact in temp['facts']:
             if 'status' in fact:
-                tooltip += "\n" + fact['status'] + ": " + fact['description'] + "\n"
+                tooltip += "\n" + fact['status'] + ": " + fact['description']
         returndata = {
             'name': temp['name'],
             'url': temp['icon'],
