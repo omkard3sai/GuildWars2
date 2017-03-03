@@ -7,12 +7,15 @@ from PyQt5.QtGui import QPixmap
 from GuildWars2 import GuildWars2
 from Buttons import ImageButton
 
+"""
 
 # Error Reporting
 def my_excepthook(type, value, tback):
     sys.__excepthook__(type, value, tback)
 
 sys.excepthook = my_excepthook
+
+"""
 
 
 class SignalConnector(QtCore.QObject):
@@ -86,25 +89,29 @@ class GW2GUI(QWidget):
         self.selectedoption = option
         if option == "Weapons":
             self.statusbar.showMessage("Loading weapons....")
-        else:
+        elif option == "Specializations":
             self.statusbar.showMessage("Loading specialization....")
+        else:
+            self.statusbar.showMessage("Loading training....")
         optionconnector = SignalConnector()
         optionconnector.signal.connect(self._displayoptions)
         optionthread = threading.Thread(target=self._threadoption, args=(optionconnector,))
         optionthread.start()
 
-    # Set the weapon or specialization clicked with traits and
-    def _setweaponspec(self, weaponspec):
+    # Set the weapon, specialization or training clicked and display it's traits or skills
+    def _setdetails(self, detail):
         self.grid.removeItem(self.detailsgrid)
         self._clearlayout(self.detailsgrid)
-        self._selectedweaponspec = weaponspec
+        self._selecteddetail = detail
         if self.selectedoption == "Weapons":
             self.statusbar.showMessage("Loading weapon skills....")
-        else:
+        elif self.selectedoption == "Specializations":
             self.statusbar.showMessage("Loading specialization traits....")
+        else:
+            self.statusbar.showMessage("Loading training skills....")
         connector = SignalConnector()
-        connector.signal.connect(self._displayweaponspec)
-        weaponspecthread = threading.Thread(target=self._threadweaponspec, args=(connector,))
+        connector.signal.connect(self._displaydetails)
+        weaponspecthread = threading.Thread(target=self._threaddetails, args=(connector,))
         weaponspecthread.start()
 
     # Threaded function for profession
@@ -116,12 +123,14 @@ class GW2GUI(QWidget):
     def _threadoption(self, optionconnector):
         if self.selectedoption == "Weapons":
             returndata = self.gw2object.getweapons()
-        else:
+        elif self.selectedoption == "Specializations":
             returndata = self.gw2object.getspecializations()
+        else:
+            returndata = self.gw2object.gettraining()
         optionconnector.signal.emit(returndata)
 
-    # Threaded function for weapon skills
-    def _threadweaponspec(self, connector):
+    # Threaded function for skills or traits
+    def _threaddetails(self, connector):
         if self.selectedoption == "Weapons":
             returndata = self.gw2object.getweapons()
         else:
@@ -130,26 +139,27 @@ class GW2GUI(QWidget):
 
     # Display profession options
     def _displayprofession(self):
-        self._addbutton(self.menugrid, "Weapons", self.clickoption, 1, 0, 1, 4)
-        self._addbutton(self.menugrid, "Specializations", self.clickoption, 1, 5, 1, 4)
+        self._addbutton(self.menugrid, "Weapons", self.clickoption, 1, 0, 1, 2)
+        self._addbutton(self.menugrid, "Specializations", self.clickoption, 1, 3, 1, 2)
+        self._addbutton(self.menugrid, "Training", self.clickoption, 1, 6, 1, 2)
         divider = QFrame()
         divider.setFrameShape(QFrame.HLine)
         divider.setFrameShadow(QFrame.Sunken)
         self.menugrid.addWidget(divider)
         self.grid.addLayout(self.menugrid, 3, 0, 1, 9)
-        self.statusbar.showMessage("Ready....Weapon or Specializations?")
+        self.statusbar.showMessage("Ready....Weapon, Specializations or Training ?")
 
-    # Display weapons or specializations
+    # Display weapons, specializations or training
     def _displayoptions(self, data):
         i = 4
         for item in sorted(data.keys()):
-            self._addbutton(self.sidemenugrid, item, self.clickweaponspec, i, 1)
+            self._addbutton(self.sidemenugrid, item, self.clickdetails, i, 1)
             i += 1
         self.grid.addLayout(self.sidemenugrid, 4, 0, 1, 1)
         self.statusbar.showMessage("Ready....Choose an option to display it's skills")
 
-    # Display skills/traits of selected weapon/specialization
-    def _displayweaponspec(self, data):
+    # Display skills/traits of selected weapon, specialization or training
+    def _displaytraining(self, data):
         h = 0
         v = 1
         for element in data[self._selectedweaponspec]:
@@ -235,7 +245,7 @@ class GW2GUI(QWidget):
         self._setoption(option)
 
     # Click event for each weapon or specialization
-    def clickweaponspec(self):
+    def clickdetail(self):
         weaponspec = self.sender().text()
         self._setweaponspec(weaponspec)
 

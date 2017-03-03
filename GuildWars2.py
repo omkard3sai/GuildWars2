@@ -66,10 +66,12 @@ class GuildWars2:
         profession = self._urlcall('professions', profession)
         self._profession = {
             'weapons': profession['weapons'],
-            'specializations': profession['specializations']
+            'specializations': profession['specializations'],
+            'training': profession['training']
         }
         self._reinitweapons = True,
         self._reinitspecializations = True
+        self._reinittraining = True
         self._professiontitle = profession['name']
 
     # Set weapons for profession
@@ -91,6 +93,17 @@ class GuildWars2:
                 traitlist.append(self._gettrait(trait))
             self._specializations[temp['name']] = traitlist
 
+    # Set training for profession
+    def _settraining(self):
+        self._training = dict()
+        # pprint.pprint(self._profession['training'])
+        for track in self._profession['training']:
+            if track['category'] == "Skills":
+                skilllist = list()
+                for skill in track['track']:
+                    skilllist.append(self._getskill(skill['skill_id']))
+                self._training[track['name']] = skilllist
+
     # Get profession
     def _getprofession(self):
         return self._profession
@@ -102,12 +115,19 @@ class GuildWars2:
             self._reinitweapons = False
         return self._weapons
 
-    # Get specialization from a profession
+    # Get specialization for profession
     def _getspecializations(self):
         if self._reinitspecializations:
             self._setspecializations()
             self._reinitspecializations = False
         return self._specializations
+
+    # Get training for profession
+    def _gettraining(self):
+        if self._reinittraining:
+            self._settraining()
+            self._reinittraining = False
+        return self._training
 
     """
 
@@ -128,4 +148,7 @@ class GuildWars2:
 
     def getspecializations(self):
         return self._getspecializations()
+
+    def gettraining(self):
+        return self._gettraining()
 

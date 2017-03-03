@@ -1,12 +1,10 @@
 # GuildWars2 GUI | Python | PyQt5
 
-A gui that displays various images after retrieving data from the official <a href="api.guildwars2.com/v2">Guild Wars 2 API</a>
-
-A queue allows storing of data such that it can be accessed in FIFO order.
+A program that displays the professions from Guild Wars 2 and their associated skills and talents. The data is retrieved from the official <a href="api.guildwars2.com/v2">Guild Wars 2 API</a>.
 
 ### Learnings
-- utilized object oriented concepts with data encapsulation
+- utilized object oriented concepts
 - adopted list() and dict() fucntionalities
-- gained basic knowledge of PyQt5
-- implemented GUI using threading
+- gained basic knowledge of PyQt5 to implement the GUI
+- fixed GUI freeze using threading
 - made python API calls and performed response parsing
