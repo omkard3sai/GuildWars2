@@ -7,4 +7,4 @@ A program that displays the professions from Guild Wars 2 and their associated s
 - adopted list() and dict() fucntionalities
 - gained basic knowledge of PyQt5 to implement the GUI
 - fixed GUI freeze using threading
-- made python API calls and performed response parsing
+- made python API calls and performed response data cleaning
