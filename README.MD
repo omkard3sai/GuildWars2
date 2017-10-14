@@ -1,6 +1,6 @@
 # GuildWars2 GUI | Python | PyQt5
 
-A program that displays the professions from Guild Wars 2 and their associated skills and talents. The data is retrieved from the official <a href="api.guildwars2.com/v2">Guild Wars 2 API</a>.
+A program that displays the professions from Guild Wars 2 and their associated skills and talents. The data is retrieved from the official <a href="https://api.guildwars2.com/v2api.guildwars2.com/v2">Guild Wars 2 API</a>.
 
 ### Learnings
 - utilized object oriented concepts
